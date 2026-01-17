@@ -68,15 +68,28 @@ const calculateSubjectGpa = (marks: number | null, range: number) => { // Change
 }
 
 const calculateSemesterGpa = (subjects: Subject[]) => {
-  let total = 0
+
+  const hasInvalid = subjects.some(
+  s => calculateSubjectGpa(s.marks, s.creditRange) === null
+)
+let total = 0
   let count = 0
+if (hasInvalid) {
+  alert("Please enter valid marks for all subjects!")
+  return null
+}
+ 
+else{
+ 
   subjects.forEach(s => {
     const gpa = calculateSubjectGpa(s.marks, s.creditRange)
-    if (gpa !== null) {
+
+  
+     if (gpa !== null ) {
       total += gpa
       count++
     }
-  })
+  })}
   if (count === 0) return null // Changed: 0 to null
   const calculatedGpa = Number.parseFloat((total / count).toFixed(2))
   return Math.min(calculatedGpa, 4.0)
@@ -177,8 +190,9 @@ const addSemester = () => {
         <CardContent className="space-y-4">
           {subjects.map((s, i) => (
             <div key={s.id} className="grid grid-cols-3 gap-2">
+             
               <input
-                placeholder="Subject Name"
+                placeholder="Subject Name (optional)"
                 className="border p-2"
                 value={s.name}
                 onChange={(e) => {
@@ -208,7 +222,7 @@ const addSemester = () => {
                 onChange={(e) => {
                   const copy = [...subjects]
                   copy[i].creditRange = Number(e.target.value)
-                  copy[i].marks = null // Reset marks when range changes
+                 
                   setSubjects(copy)
                   setCurrentGpa(null)
                 }}
@@ -235,14 +249,7 @@ const addSemester = () => {
                 Calculate GPA
               </Button>
             )}
-             <Button 
-              variant="outline" 
-                     onClick={addSemester} 
-                  
-          
-            >
-              Calculate GPA
-            </Button>
+           
            
           </div>
 
@@ -270,6 +277,7 @@ const addSemester = () => {
         <CardContent className="space-y-4">
           {manualSemesters.map((semester, index) => (
             <div key={semester.id} className="flex items-center gap-3">
+            
               <input
                 type="text"
                 placeholder="Semester Name"
