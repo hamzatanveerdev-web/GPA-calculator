@@ -3,6 +3,11 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Calculator, TrendingUp, AlertCircle, Plus, Trash2, Award } from "lucide-react"
+import CircularProgress from "@/components/circular-progress"
 
 /* ================= TYPES ================= */
 
@@ -48,8 +53,8 @@ const getDivider = (range: number) => {
   }
 }
 
-const isValidMarks = (marks: number | null, range: number) => { // Changed: type
-  if (marks === null) return false // Added: null check
+const isValidMarks = (marks: number | null, range: number) => {
+  if (marks === null) return false
   return marks >= 0  && marks <= range 
 }
 
@@ -59,8 +64,8 @@ const isValidGpa = (gpa: number) => {
 
 /* ================= CORE LOGIC ================= */
 
-const calculateSubjectGpa = (marks: number | null, range: number) => { // Changed: type
-  if (marks === null || !isValidMarks(marks, range)) return null // Changed: null check
+const calculateSubjectGpa = (marks: number | null, range: number) => {
+  if (marks === null || !isValidMarks(marks, range)) return null
   const qp = QUALITY_POINT_TABLE[range]?.[marks] ?? 0
   const divider = getDivider(range)
   const gpa = (qp / divider) * 4
@@ -68,29 +73,24 @@ const calculateSubjectGpa = (marks: number | null, range: number) => { // Change
 }
 
 const calculateSemesterGpa = (subjects: Subject[]) => {
-
   const hasInvalid = subjects.some(
-  s => calculateSubjectGpa(s.marks, s.creditRange) === null
-)
-let total = 0
+    s => calculateSubjectGpa(s.marks, s.creditRange) === null
+  )
+  let total = 0
   let count = 0
-if (hasInvalid) {
-  alert("Please enter valid marks for all subjects!")
-  return null
-}
- 
-else{
- 
-  subjects.forEach(s => {
-    const gpa = calculateSubjectGpa(s.marks, s.creditRange)
-
-  
-     if (gpa !== null ) {
-      total += gpa
-      count++
-    }
-  })}
-  if (count === 0) return null // Changed: 0 to null
+  if (hasInvalid) {
+    alert("Please enter valid marks for all subjects!")
+    return null
+  }
+  else{
+    subjects.forEach(s => {
+      const gpa = calculateSubjectGpa(s.marks, s.creditRange)
+      if (gpa !== null ) {
+        total += gpa
+        count++
+      }
+    })}
+  if (count === 0) return null
   const calculatedGpa = Number.parseFloat((total / count).toFixed(2))
   return Math.min(calculatedGpa, 4.0)
 }
@@ -111,38 +111,32 @@ export default function GpaCalculator() {
       ...subjects,
       { id: Date.now().toString(), name: "", marks:null, creditRange: 20 },
     ])
-    setCurrentGpa(null) // Reset GPA when new subject added
+    setCurrentGpa(null)
   }
 
-  
- const calculateCurrentGpa = () => {
-  const gpa = calculateSemesterGpa(subjects)
-  if (gpa === null) {
-    alert("Please enter valid marks for at least one subject!")
-    return
+  const removeSubject = (id: string) => {
+    setSubjects(subjects.filter(s => s.id !== id))
+    setCurrentGpa(null)
   }
-  setCurrentGpa(gpa)
-}
 
-const addSemester = () => {
-  const gpa = calculateSemesterGpa(subjects)
-  if (gpa === null) {
-    alert("Please enter valid marks for at least one subject!")
-    return
+  const calculateCurrentGpa = () => {
+    const gpa = calculateSemesterGpa(subjects)
+    if (gpa === null) {
+      alert("Please enter valid marks for at least one subject!")
+      return
+    }
+    setCurrentGpa(gpa)
   }
-  setSemesters([...semesters, { id: Date.now().toString(), subjects, gpa }])
-  setSubjects([])
-  setCurrentGpa(null)
-}
+
+ 
 
   const calculateCgpaFromSemesters = () => {
     if (semesters.length === 0) return 0
     const total = semesters.reduce((sum, s) => sum + s.gpa, 0)
     const calculatedCgpa = Number.parseFloat((total / semesters.length).toFixed(2))
-    return Math.min(calculatedCgpa, 4.0) // Never exceed 4.0
+    return Math.min(calculatedCgpa, 4.0)
   }
 
-  // New: Calculate CGPA from manually entered GPAs
   const calculateCgpaFromManual = () => {
     if (manualSemesters.length === 0) return 0
     const validSemesters = manualSemesters.filter(s => isValidGpa(s.gpa))
@@ -152,7 +146,6 @@ const addSemester = () => {
     return Math.min(calculatedCgpa, 4.0)
   }
 
-  // New: Add manual semester input
   const addManualSemester = () => {
     setManualSemesters([
       ...manualSemesters,
@@ -160,13 +153,11 @@ const addSemester = () => {
     ])
   }
 
-  // New: Remove manual semester
   const removeManualSemester = (id: string) => {
     if (manualSemesters.length <= 1) return
     setManualSemesters(manualSemesters.filter(s => s.id !== id))
   }
 
-  // New: Calculate total CGPA (from both sources)
   const calculateTotalCgpa = () => {
     const allGpas = [
       ...semesters.map(s => s.gpa),
@@ -181,245 +172,283 @@ const addSemester = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="max-w-5xl mx-auto p-6 space-y-8">
       {/* SUBJECTS FORM */}
-      <Card>
+      <Card className="card-hover">
         <CardHeader>
-          <CardTitle>Calculate GPA from Subjects</CardTitle>
+          <div className="flex items-center gap-2">
+            <Calculator className="h-6 w-6 text-primary" />
+            <CardTitle>Calculate GPA from Subjects</CardTitle>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
+          {subjects.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              <Calculator className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No subjects added yet. Click "Add Subject" to begin.</p>
+            </div>
+          )}
+          
           {subjects.map((s, i) => (
-            <div key={s.id} className="grid grid-cols-3 gap-2">
-             
-              <input
-                placeholder="Subject Name (optional)"
-                className="border p-2"
-                value={s.name}
-                onChange={(e) => {
-                  const copy = [...subjects]
-                  copy[i].name = e.target.value
-                  setSubjects(copy)
-                  setCurrentGpa(null)
-                }}
-              />
-              <input
-                type="number"
-                placeholder="Marks"
-                className="border p-2"
-                value={s.marks === null ? "" : s.marks}
-                onChange={(e) => {
-                  const copy = [...subjects]
-                  copy[i].marks = e.target.value === "" ? null : Number(e.target.value)
-                  setSubjects(copy)
-                  setCurrentGpa(null)
-                }}
-                max={s.creditRange}
-                min={0}
-              />
-              <select
-                className="border p-2"
-                value={s.creditRange}
-                onChange={(e) => {
-                  const copy = [...subjects]
-                  copy[i].creditRange = Number(e.target.value)
-                 
-                  setSubjects(copy)
-                  setCurrentGpa(null)
-                }}
-              >
-                <option value={20}>20</option>
-                <option value={40}>40</option>
-                <option value={60}>60</option>
-                <option value={80}>80</option>
-                <option value={100}>100</option>
-              </select>
+            <div key={s.id} className="space-y-4 p-4 rounded-lg border bg-muted/30 animate-fadeIn">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor={`subject-${i}`}>Subject Name</Label>
+                  <Input
+                    id={`subject-${i}`}
+                    placeholder="e.g., Mathematics"
+                    className="input-focus"
+                    value={s.name}
+                    onChange={(e) => {
+                      const copy = [...subjects]
+                      copy[i].name = e.target.value
+                      setSubjects(copy)
+                      setCurrentGpa(null)
+                    }}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor={`marks-${i}`}>Marks Obtained</Label>
+                  <Input
+                    id={`marks-${i}`}
+                    type="number"
+                    placeholder={`0-${s.creditRange}`}
+                    className="input-focus"
+                    value={s.marks === null ? "" : s.marks}
+                    onChange={(e) => {
+                      const copy = [...subjects]
+                      copy[i].marks = e.target.value === "" ? null : Number(e.target.value)
+                      setSubjects(copy)
+                      setCurrentGpa(null)
+                    }}
+                    max={s.creditRange}
+                    min={0}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor={`credits-${i}`}>Credit Range</Label>
+                  <Select
+                    value={s.creditRange.toString()}
+                    onValueChange={(value) => {
+                      const copy = [...subjects]
+                      copy[i].creditRange = Number(value)
+                      setSubjects(copy)
+                      setCurrentGpa(null)
+                    }}
+                  >
+                    <SelectTrigger id={`credits-${i}`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="20">20 credits</SelectItem>
+                      <SelectItem value="40">40 credits</SelectItem>
+                      <SelectItem value="60">60 credits</SelectItem>
+                      <SelectItem value="80">80 credits</SelectItem>
+                      <SelectItem value="100">100 credits</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
               {/* Invalid marks warning */}
-              {!isValidMarks(s.marks, s.creditRange) && s.marks!=null &&(
-                <p className="text-red-500 text-sm col-span-3 mt-1">
-                  Invalid Marks! Maximum allowed: {s.creditRange}
-                </p>
+              {!isValidMarks(s.marks, s.creditRange) && s.marks != null && (
+                <div className="flex items-center gap-2 text-destructive text-sm animate-fadeIn">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>Invalid marks! Maximum allowed: {s.creditRange}</span>
+                </div>
               )}
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => removeSubject(s.id)}
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Remove Subject
+              </Button>
             </div>
           ))}
 
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={addSubject}>Add Subject</Button>
+          <div className="flex flex-wrap gap-3">
+            <Button onClick={addSubject} className="button-hover">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Subject
+            </Button>
             {subjects.length > 0 && (
-              <Button onClick={calculateCurrentGpa} variant="outline">
-                Calculate GPA
-              </Button>
+              <>
+                <Button onClick={calculateCurrentGpa} variant="outline" className="button-hover">
+                  <Calculator className="h-4 w-4 mr-2" />
+                  Calculate GPA
+                </Button>
+              
+              </>
             )}
-           
-           
           </div>
 
           {/* CURRENT GPA DISPLAY */}
           {currentGpa !== null && (
-            <div className="mt-4 p-4 bg-blue-50 rounded-md">
-              <p className="text-lg font-semibold">
-                Current Semester GPA: <span className="text-blue-700">{currentGpa}</span>
-              </p>
-              {currentGpa > 4.0 && (
-                <p className="text-sm text-amber-600 mt-1">
-                  Note: GPA is capped at maximum 4.0
-                </p>
-              )}
+            <div className="mt-6 flex flex-col items-center animate-scaleIn">
+              <CircularProgress value={currentGpa} label="GPA" size={180} strokeWidth={14} />
+              <p className="text-sm font-medium text-muted-foreground mt-4">Current Semester GPA</p>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* MANUAL GPA INPUT SECTION - NEW */}
-      <Card>
+      {/* MANUAL GPA INPUT SECTION */}
+      <Card className="card-hover">
         <CardHeader>
-          <CardTitle>Calculate CGPA </CardTitle>
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-6 w-6 text-primary" />
+            <CardTitle>Calculate CGPA from Multiple Semesters</CardTitle>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           {manualSemesters.map((semester, index) => (
-            <div key={semester.id} className="flex items-center gap-3">
-            
-              <input
-                type="text"
-                placeholder="Semester Name"
-                className="border p-2 flex-1"
-                value={semester.name}
-                onChange={(e) => {
-                  const copy = [...manualSemesters]
-                  copy[index].name = e.target.value
-                  setManualSemesters(copy)
-                }}
-              />
-              <input
-                type="number"
-                step="0.01"
-                placeholder="GPA (0-4)"
-                className="border p-2 w-32"
-                value={semester.gpa === 0 ? "" : semester.gpa}
-                onChange={(e) => {
-                  const value = e.target.value === "" ? 0 : parseFloat(e.target.value)
-                  const copy = [...manualSemesters]
-                  copy[index].gpa = value
-                  setManualSemesters(copy)
-                }}
-                min="0"
-                max="4.0"
-              />
-              <Button
-                variant="destructive"
+            <div key={semester.id} className="space-y-4 p-4 rounded-lg border bg-muted/30">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor={`sem-name-${index}`}>Semester Name</Label>
+                  <Input
+                    id={`sem-name-${index}`}
+                    placeholder="e.g., Fall 2024"
+                    className="input-focus"
+                    value={semester.name}
+                    onChange={(e) => {
+                      const copy = [...manualSemesters]
+                      copy[index].name = e.target.value
+                      setManualSemesters(copy)
+                    }}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor={`sem-gpa-${index}`}>GPA (0-4.0)</Label>
+                  <Input
+                    id={`sem-gpa-${index}`}
+                    type="number"
+                    step="0.01"
+                    placeholder="3.50"
+                    className="input-focus"
+                    value={semester.gpa === 0 ? "" : semester.gpa}
+                    onChange={(e) => {
+                      const value = e.target.value === "" ? 0 : parseFloat(e.target.value)
+                      const copy = [...manualSemesters]
+                      copy[index].gpa = value
+                      setManualSemesters(copy)
+                    }}
+                    min="0"
+                    max="4.0"
+                  />
+                </div>
+
+                <div className="flex items-end">
+                   <Button
+                variant="ghost"
                 size="sm"
                 onClick={() => removeManualSemester(semester.id)}
-                disabled={manualSemesters.length <= 1}
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
               >
-                Remove
+                <Trash2 className="h-4 w-4 mr-2" />
+               
               </Button>
+                </div>
+              </div>
+              
               {!isValidGpa(semester.gpa) && semester.gpa !== 0 && (
-                <p className="text-red-500 text-sm">
-                  Invalid GPA! Must be between 0 and 4.0
-                </p>
+                <div className="flex items-center gap-2 text-destructive text-sm">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>Invalid GPA! Must be between 0 and 4.0</span>
+                </div>
               )}
             </div>
           ))}
           
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={addManualSemester}>
+          <div className="flex flex-wrap gap-3">
+            <Button onClick={addManualSemester} className="button-hover">
+              <Plus className="h-4 w-4 mr-2" />
               Add Semester
             </Button>
             <Button 
-              variant="outline" 
-                         >
+              onClick={calculateTotalCgpa}
+              className="button-hover pulse-glow"
+            >
+              <Calculator className="h-4 w-4 mr-2" />
               Calculate CGPA
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* SEMESTERS & RESULTS */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Semester GPA</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Calculated Semesters */}
-          {semesters.length > 0 && (
-            <div>
-              <h3 className="font-semibold mb-2">Calculated Semesters:</h3>
-              {semesters.map((s, idx) => (
-                <div key={s.id} className="mb-2 p-3 bg-gray-50 rounded">
-                  <p>
-                    {s.subjects[0]?.name ? `${s.subjects[0].name}...` : `Semester ${idx + 1}`} GPA: <b>{s.gpa}</b>
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {s.subjects.length} subject(s)
-                  </p>
-                </div>
-              ))}
+      {/* RESULTS DISPLAY */}
+      {cgpa !== null && (
+        <Card className="card-hover animate-scaleIn">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Award className="h-6 w-6 text-primary" />
+              Your Results
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* CGPA Display */}
+            <div className="flex flex-col items-center p-6 bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl border border-primary/30">
+              <CircularProgress value={cgpa} label="CGPA" size={220} strokeWidth={16} />
+              <p className="text-sm font-medium text-muted-foreground mt-4">
+                From {semesters.length + manualSemesters.filter(s => s.gpa > 0 && isValidGpa(s.gpa)).length} semester(s)
+              </p>
             </div>
-          )}
 
-          {/* Manual Semesters */}
-          {manualSemesters.filter(s => s.gpa > 0 && isValidGpa(s.gpa)).length > 0 && (
-            <div>
-              
-              {manualSemesters
-                .filter(s => s.gpa > 0 && isValidGpa(s.gpa))
-                .map((s, idx) => (
-                  <div key={s.id} className="mb-2 p-3 bg-blue-50 rounded">
-                    <p>
-                      {s.name} GPA: <b>{s.gpa}</b>
-                    </p>
-                  </div>
-                ))}
-            </div>
-          )}
-
-          {/* TOTAL CGPA CALCULATION */}
-          <div className="mt-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold">CGPA</h3>
-            
-            </div>
-            
-            {cgpa !== null && (
-              <div className="p-4 bg-green-50 rounded-md">
-                <p className="text-lg font-bold">
-                CGPA: <span className="text-green-700">{cgpa}</span>
-                </p>
-                <p className="text-sm text-gray-600 mt-1">
-                  Calculated from {semesters.length + manualSemesters.filter(s => s.gpa > 0 && isValidGpa(s.gpa)).length} semester(s)
-                </p>
-                {cgpa > 4.0 && (
-                  <p className="text-sm text-amber-600 mt-1">
-                    Note: CGPA is capped at maximum 4.0
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Individual CGPA Calculations */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              {/* From Calculated Semesters */}
+            {/* Individual Breakdown */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {semesters.length > 0 && (
-                <div className="p-3 bg-gray-50 rounded">
-                 
-                  <p>CGPA: <span className="font-bold">{calculateCgpaFromSemesters()}</span></p>
-                  <p className="text-sm text-gray-600">({semesters.length} semester(s))</p>
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <Calculator className="h-4 w-4" />
+                    Calculated Semesters
+                  </h4>
+                  {semesters.map((s, idx) => (
+                    <div key={s.id} className="mb-2 p-3 bg-background rounded border">
+                      <p className="font-medium">
+                        {s.subjects[0]?.name ? `${s.subjects[0].name}...` : `Semester ${idx + 1}`} GPA: <span className="text-primary font-bold">{s.gpa.toFixed(2)}</span>
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {s.subjects.length} subject(s)
+                      </p>
+                    </div>
+                  ))}
+                  <div className="mt-3 pt-3 border-t">
+                    <p className="text-sm">Sub-CGPA: <span className="font-bold">{calculateCgpaFromSemesters().toFixed(2)}</span></p>
+                  </div>
                 </div>
               )}
 
-              {/* From Manual Entries */}
               {manualSemesters.filter(s => s.gpa > 0 && isValidGpa(s.gpa)).length > 0 && (
-                <div className="p-3 bg-blue-50 rounded">
-                
-                  <p>CGPA: <span className="font-bold">{calculateCgpaFromManual()}</span></p>
-                  <p className="text-sm text-gray-600">
-                    ({manualSemesters.filter(s => s.gpa > 0 && isValidGpa(s.gpa)).length} semester(s))
-                  </p>
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    Manual Entries
+                  </h4>
+                  {manualSemesters
+                    .filter(s => s.gpa > 0 && isValidGpa(s.gpa))
+                    .map((s) => (
+                      <div key={s.id} className="mb-2 p-3 bg-background rounded border">
+                        <p className="font-medium">
+                          {s.name} GPA: <span className="text-primary font-bold">{s.gpa.toFixed(2)}</span>
+                        </p>
+                      </div>
+                    ))}
+                  <div className="mt-3 pt-3 border-t">
+                    <p className="text-sm">Sub-CGPA: <span className="font-bold">{calculateCgpaFromManual().toFixed(2)}</span></p>
+                  </div>
                 </div>
               )}
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
