@@ -4,9 +4,10 @@ import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, Calculator } from "lucide-react"
+import { Menu } from "lucide-react"
 import { usePathname } from "next/navigation"
-
+import logo from "@/public/logo.png"
+import Image from "next/image"
 const navigation = [
   { name: "Home", href: "/" },
   { name: "About", href: "/about" },
@@ -22,19 +23,12 @@ export default function Navbar() {
     <nav className="border-b bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          {/* Logo */}
-          <Link 
-            href="/" 
-            className="flex items-center space-x-3 group transition-transform hover:scale-105"
-            onClick={() => setIsOpen(false)}
-          >
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
-              <Calculator className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              GPA Calculator
-            </span>
-          </Link>
+        
+
+              <Image src={logo} alt="GPA Calculator" className="h-fit w-18 text-primary-foreground" />
+
+           
+        
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
@@ -62,7 +56,7 @@ export default function Navbar() {
               size="sm" 
               className="ml-4 button-hover shadow-md hover:shadow-lg"
             >
-              <Link href="#calculator">Calculate Now</Link>
+              <Link href="#calculator">Calculate GPA Now</Link>
             </Button>
           </div>
 
@@ -106,7 +100,7 @@ export default function Navbar() {
                       size="lg"
                     >
                       <Link href="#calculator" onClick={() => setIsOpen(false)}>
-                        Calculate Now
+                        Calculate GPA Now
                       </Link>
                     </Button>
                   </div>

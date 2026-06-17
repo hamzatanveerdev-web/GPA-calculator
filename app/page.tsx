@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calculator, TrendingUp, BookOpen, Clock, Shield, Zap } from "lucide-react"
 import Link from "next/link"
-
+import "@/app/globals.css"
 const features = [
   {
     icon: Calculator,
@@ -64,9 +64,11 @@ export default function Home() {
         {/* Hero Section */}
         <section className="bg-gradient-to-b from-primary/10 via-primary/5 to-background py-20 px-4 overflow-hidden">
           <div className="max-w-7xl mx-auto text-center space-y-6 animate-fadeInUp">
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
+          <div className="text-4xl md:text-6xl font-bold tracking-tight">
+            <h1>
               Calculate Your <span className="gradient-text">GPA</span> with Ease
             </h1>
+            </div>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Track your academic performance, calculate semester GPAs, and monitor your cumulative GPA across all semesters.
             </p>

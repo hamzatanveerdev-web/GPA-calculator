@@ -1,5 +1,4 @@
 "use client"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,8 +13,8 @@ import CircularProgress from "@/components/circular-progress"
 interface Subject {
   id: string
   name: string
-  marks: number|null
-  creditRange: number // 20 | 40 | 60 | 80 | 100
+  marks: number | null
+  creditRange: number
 }
 
 interface Semester {
@@ -37,21 +36,11 @@ const QUALITY_POINT_TABLE: Record<number, Record<number, number>> = {
   40: { 16:2,17:2.5,18:3,19:3.5,20:4,21:4.33,22:4.67,23:5,24:5.33,25:5.67,26:6,27:6.33,28:6.67,29:7,30:7.33,31:7.67,32:8,33:8,34:8,35:8 ,36:8,37:8,38:8,39:8,40:8},
   60: { 24:3,25:3.5,26:4,27:4.5,28:5,29:5.5,30:6,31:6.33,32:6.67,33:7,34:7.33,35:7.67,36:8,37:8.33,38:8.67,39:9,40:9.33,41:9.67,42:10,43:10.33,44:10.67,45:11,46:11.33,47:11.67,48:12,49:12,50:12,51:12,52:12,53:12,54:12,55:12,56:12,57:12,58:12,59:12,60:12 },
   80: { 32:4,33:4.5,34:5,35:5.5,36:6,37:6.5,38:7,39:7.5,40:8,41:8.33,42:8.67,43:9,44:9.33,45:9.67,46:10,47:10.33,48:10.67,49:11,50:11.33,51:11.67,52:12,53:12.33,54:12.67,55:13,56:13.33,57:13.67,58:14,59:14.33,60:14.67,61:15,62:15.33,63:15.67,64:16,65:16,66:16,67:16,68:16,69:16,70:16,71:16,72:16,73:16,74:16,75:16,76:16,77:16,78:16,79:16,80:16 },
-  100:{ 40:5,41:5.5,42:6,43:6.5,44:7,45:7.5,46:8,47:8.5,48:9,49:9.5,50:10,51:10.33,52:10.67,53:11,54:11.33,55:11.67,56:12,57:12.33,58:12.67,59:13,60:13.33,61:13.67,62:14,63:14.33,64:14.67,65:15,66:15.33,67:15.67,68:16,69:16.33,70:16.67,71:17,72:17.33,73:17.67,74:18,75:18.33,76:18.67,77:19,78:19.33,79:19.67,80:20,81:20,82:20,83:20,84:20,85:20,86:20,87:20,88:20,89:20,90:20,91:20,92:20,93:20,94:20,95:20,96:20,97:20,98:20,99:20,100:20 }
+  100: { 40:5,41:5.5,42:6,43:6.5,44:7,45:7.5,46:8,47:8.5,48:9,49:9.5,50:10,51:10.33,52:10.67,53:11,54:11.33,55:11.67,56:12,57:12.33,58:12.67,59:13,60:13.33,61:13.67,62:14,63:14.33,64:14.67,65:15,66:15.33,67:15.67,68:16,69:16.33,70:16.67,71:17,72:17.33,73:17.67,74:18,75:18.33,76:18.67,77:19,78:19.33,79:19.67,80:20,81:20,82:20,83:20,84:20,85:20,86:20,87:20,88:20,89:20,90:20,91:20,92:20,93:20,94:20,95:20,96:20,97:20,98:20,99:20,100:20 }
 }
 
 /* ================= HELPERS ================= */
 
-const getDivider = (range: number) => {
-  switch (range) {
-    case 20: return 4
-    case 40: return 8
-    case 60: return 12
-    case 80: return 16
-    case 100: return 20
-    default: return 1
-  }
-}
 
 const isValidMarks = (marks: number | null, range: number) => {
   if (marks === null) return false
@@ -64,37 +53,42 @@ const isValidGpa = (gpa: number) => {
 
 /* ================= CORE LOGIC ================= */
 
-const calculateSubjectGpa = (marks: number | null, range: number) => {
-  if (marks === null || !isValidMarks(marks, range)) return null
-  const qp = QUALITY_POINT_TABLE[range]?.[marks] ?? 0
-  const divider = getDivider(range)
-  const gpa = (qp / divider) * 4
-  return Number.parseFloat(Math.min(gpa, 4).toFixed(2))
-}
+
 
 const calculateSemesterGpa = (subjects: Subject[]) => {
-  const hasInvalid = subjects.some(
-    s => calculateSubjectGpa(s.marks, s.creditRange) === null
-  )
-  let total = 0
-  let count = 0
-  if (hasInvalid) {
-    alert("Please enter valid marks for all subjects!")
-    return null
-  }
-  else{
-    subjects.forEach(s => {
-      const gpa = calculateSubjectGpa(s.marks, s.creditRange)
-      if (gpa !== null ) {
-        total += gpa
-        count++
-      }
-    })}
-  if (count === 0) return null
-  const calculatedGpa = Number.parseFloat((total / count).toFixed(2))
-  return Math.min(calculatedGpa, 4.0)
-}
+  let totalQualityPoints = 0
+  let totalCreditHours = 0
 
+  for (const subject of subjects) {
+    if (subject.marks === null) continue
+    
+    // CreditRange ko map karo: 20→1, 40→2, 60→3, 80→4, 100→5
+    const creditHoursMap: Record<number, number> = {
+      20: 1,
+      40: 2,
+      60: 3,
+      80: 4,
+      100: 5
+    }
+    
+    const creditHours = creditHoursMap[subject.creditRange];
+    console.log(creditHours)
+    // Validation ke liye max marks
+    if (subject.marks > subject.creditRange) {
+      alert(`Error: ${subject.name || 'Subject'} has ${subject.marks} marks but maximum is ${subject.creditRange}`)
+      return null
+    }
+
+    const qualityPoint = QUALITY_POINT_TABLE[subject.creditRange]?.[subject.marks ?? 0] 
+     
+    totalQualityPoints += qualityPoint
+    totalCreditHours += creditHours  // ← Ab 1,2,3,4,5 add hoga
+  }
+    console.log("Total Quality Points:", totalQualityPoints)
+  if (totalCreditHours === 0) return null
+
+  return Number((totalQualityPoints / totalCreditHours).toFixed(2))
+}
 /* ================= COMPONENT ================= */
 
 export default function GpaCalculator() {
@@ -119,8 +113,11 @@ export default function GpaCalculator() {
     setCurrentGpa(null)
   }
 
+ 
   const calculateCurrentGpa = () => {
-    const gpa = calculateSemesterGpa(subjects)
+    
+    const gpa = calculateSemesterGpa(subjects);
+
     if (gpa === null) {
       alert("Please enter valid marks for at least one subject!")
       return
@@ -303,7 +300,7 @@ export default function GpaCalculator() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <TrendingUp className="h-6 w-6 text-primary" />
-            <CardTitle>Calculate CGPA from Multiple Semesters</CardTitle>
+            <CardTitle>Calculate CGPA</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
