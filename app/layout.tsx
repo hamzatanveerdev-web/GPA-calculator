@@ -26,8 +26,8 @@ export const metadata: Metadata = {
   authors: [{ name: "GPA Calculator" }],
 
   icons: {
-    icon: "/icon-light-32x32.png",
-    apple: "/apple-icon.png",
+    icon: "/icon.png",
+    apple: "/icon.png",
   },
 
   openGraph: {
@@ -40,10 +40,10 @@ export const metadata: Metadata = {
 
     images: [
       {
-        url: "/logo.png",
+        url: "/icon.png",
         width: 512,
         height: 512,
-        alt: "GPA Calculator Logo",
+        alt: "GPA Calculator Icon",
       },
     ],
   },
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     title: "GPA Calculator",
     description:
       "Calculate your GPA and CGPA across all semesters with ease.",
-    images: ["/logo.png"],
+    images: ["/icon.png"],
   },
 }
 
@@ -68,7 +68,7 @@ export default function RootLayout({
 
     name: "GPA Calculator",
     url: "https://gpa-calculator-com.vercel.app/",
-    logo: "https://gpa-calculator-com.vercel.app/logo.png",
+    logo: "https://gpa-calculator-com.vercel.app/icon.png",
   }
 
   return (

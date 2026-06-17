@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu } from "lucide-react"
 import { usePathname } from "next/navigation"
-import logo from "@/public/logo.png"
+import logo from "@/public/icon.png"
 import Image from "next/image"
 const navigation = [
   { name: "Home", href: "/" },
